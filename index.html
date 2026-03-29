@@ -181,10 +181,15 @@
 
             // 2. 属性フィルターの動的生成
             const attrContainer = document.getElementById('attribute-filters');
-            const attrs = new Set();
-            allSongs.forEach(s => s.attributes.forEach(a => attrs.add(a)));
+            const attrCount = {};
+            allSongs.forEach(song => {
+                song.attributes.forEach(attr => {
+                    attrCount[attr] = (attrCount[attr] || 0) + 1;
+                });
+            });
+            const attrs = Object.keys(attrCount).filter(attr => attrCount[attr] > 1).sort();
             
-            Array.from(attrs).sort().forEach(attr => {
+            attrs.forEach(attr => {
                 const label = document.createElement('label');
                 label.className = "flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded border border-gray-300 hover:border-blue-400 cursor-pointer transition text-gray-800";
                 label.innerHTML = `<input type="checkbox" value="${attr}" class="attr-checkbox"> <span>${attr}</span>`;
