@@ -3,35 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pop'n music Lv.48-49 楽曲抽選くん</title>
+    <title>pop'n music 楽曲抽選くん</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
     <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10">
-        <h1 class="text-3xl font-black text-center mb-8 text-blue-700">Lv.48-49 楽曲抽選</h1>
+        <h1 class="text-3xl font-black text-center mb-8 text-blue-700">楽曲抽選ツール</h1>
 
         <div class="space-y-8 border-b pb-8 mb-8">
-            <!-- レベルフィルター -->
+            <!-- レベルフィルター（動的生成に変更） -->
             <div>
                 <label class="block text-sm font-bold text-slate-600 mb-3">対象レベル</label>
-                <div class="flex gap-4">
-                    <label class="flex items-center space-x-2 cursor-pointer bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-                        <input type="checkbox" value="48" class="level-checkbox w-5 h-5" checked>
-                        <span class="font-bold">Lv.48</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-                        <input type="checkbox" value="49" class="level-checkbox w-5 h-5" checked>
-                        <span class="font-bold">Lv.49</span>
-                    </label>
+                <div id="level-filters" class="flex flex-wrap gap-4">
+                    <!-- JavaScriptで自動生成されます -->
                 </div>
             </div>
 
-            <!-- 属性フィルター -->
+            <!-- 属性フィルター（動的生成） -->
             <div>
                 <label class="block text-sm font-bold text-slate-600 mb-3">重視する属性（複数選択可）</label>
-                <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm">
-                    <!-- JavaScriptで動的に生成 -->
-                </div>
+                <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
             </div>
 
             <!-- 数値フィルター -->
@@ -52,7 +43,7 @@
         </div>
 
         <div class="text-center">
-            <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg transform transition active:scale-95 disabled:bg-slate-300">
+            <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg transition disabled:bg-slate-300">
                 楽曲を抽選する！
             </button>
             <p id="match-count" class="text-sm text-slate-500 mt-4 italic font-medium">読み込み中...</p>
@@ -60,25 +51,21 @@
 
         <!-- 結果表示エリア -->
         <div id="result-area" class="mt-10 hidden">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner relative overflow-hidden">
-                <div class="relative z-10">
-                    <div id="res-level" class="inline-block bg-white text-blue-700 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
-                    <p id="res-genre" class="text-blue-100 text-sm font-bold tracking-widest uppercase mb-1"></p>
-                    <h2 id="res-title" class="text-3xl font-black mb-6 leading-tight"></h2>
-                    <div class="grid grid-cols-2 gap-y-3 text-sm font-medium border-t border-blue-400 pt-6">
-                        <p>BPM: <span id="res-bpm" class="font-bold"></span></p>
-                        <p>Notes: <span id="res-notes" class="font-bold"></span></p>
-                        <p>演奏時間: <span id="res-time" class="font-bold"></span></p>
-                        <div class="col-span-2">
-                            <p class="text-blue-200 mb-1">属性タグ:</p>
-                            <p id="res-attributes" class="italic text-xs leading-relaxed"></p>
-                        </div>
+            <!-- （中略：前回の結果表示エリアと同じ） -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
+                <div id="res-level" class="inline-block bg-white text-blue-700 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
+                <p id="res-genre" class="text-blue-100 text-sm font-bold mb-1"></p>
+                <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
+                <div class="grid grid-cols-2 gap-y-3 text-sm border-t border-blue-400 pt-6">
+                    <p>BPM: <span id="res-bpm"></span></p>
+                    <p>Notes: <span id="res-notes"></span></p>
+                    <p>演奏時間: <span id="res-time"></span></p>
+                    <div class="col-span-2">
+                        <p id="res-attributes" class="italic text-xs"></p>
                     </div>
-                    <div class="mt-8 text-center">
-                        <a id="res-link" href="#" target="_blank" class="inline-block bg-white text-blue-700 font-bold py-2 px-6 rounded-lg hover:bg-blue-50 transition">
-                            popn.wiki で攻略を見る
-                        </a>
-                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <a id="res-link" href="#" target="_blank" class="bg-white text-blue-700 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
                 </div>
             </div>
         </div>
@@ -98,7 +85,23 @@
         }
 
         function initApp() {
-            const container = document.getElementById('attribute-filters');
+            // 1. レベルフィルターの動的生成
+            const levelContainer = document.getElementById('level-filters');
+            const uniqueLevels = [...new Set(allSongs.map(s => s.level))].sort((a, b) => b - a); // 降順
+
+            uniqueLevels.forEach(lv => {
+                const label = document.createElement('label');
+                label.className = "flex items-center space-x-2 cursor-pointer bg-blue-50 px-4 py-2 rounded-lg border border-blue-200";
+                label.innerHTML = `
+                    <input type="checkbox" value="${lv}" class="level-checkbox w-5 h-5" checked>
+                    <span class="font-bold">Lv.${lv}</span>
+                `;
+                label.addEventListener('change', updateMatchCount);
+                levelContainer.appendChild(label);
+            });
+
+            // 2. 属性フィルターの動的生成
+            const attrContainer = document.getElementById('attribute-filters');
             const attrs = new Set();
             allSongs.forEach(s => s.attributes.forEach(a => attrs.add(a)));
             
@@ -107,12 +110,11 @@
                 label.className = "flex items-center space-x-1 bg-white px-2 py-1 rounded border border-slate-200 hover:border-blue-400 cursor-pointer transition";
                 label.innerHTML = `<input type="checkbox" value="${attr}" class="attr-checkbox"> <span>${attr}</span>`;
                 label.addEventListener('change', updateMatchCount);
-                container.appendChild(label);
+                attrContainer.appendChild(label);
             });
 
-            // 全フィルターにイベント登録
-            document.querySelectorAll('.level-checkbox, #min-bpm, #max-bpm, #min-notes').forEach(el => {
-                el.addEventListener('change', updateMatchCount);
+            // その他の数値フィルターにイベント登録
+            document.querySelectorAll('#min-bpm, #max-bpm, #min-notes').forEach(el => {
                 el.addEventListener('input', updateMatchCount);
             });
 
@@ -120,6 +122,7 @@
         }
 
         function getFilteredSongs() {
+            // チェックされているレベルをすべて取得
             const selectedLv = Array.from(document.querySelectorAll('.level-checkbox:checked')).map(cb => parseInt(cb.value));
             const selectedAttrs = Array.from(document.querySelectorAll('.attr-checkbox:checked')).map(cb => cb.value);
             const minBpm = parseInt(document.getElementById('min-bpm').value) || 0;
@@ -143,6 +146,7 @@
 
         document.getElementById('draw-button').onclick = () => {
             const filtered = getFilteredSongs();
+            if (filtered.length === 0) return;
             const song = filtered[Math.floor(Math.random() * filtered.length)];
             
             document.getElementById('res-level').innerText = "Lv." + song.level;
@@ -153,9 +157,7 @@
             document.getElementById('res-time').innerText = song.time || "不明";
             document.getElementById('res-attributes').innerText = song.attributes.join(' / ');
             document.getElementById('res-link').href = song.url;
-            
             document.getElementById('result-area').classList.remove('hidden');
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         };
 
         loadSongs();
