@@ -47,6 +47,7 @@
                 楽曲を抽選する！
             </button>
             <p id="match-count" class="text-sm text-slate-500 mt-4 italic font-medium">読み込み中...</p>
+            <div id="filter-preview" class="text-xs text-slate-600 mt-3 space-y-2"></div>
         </div>
 
         <!-- 結果表示エリア -->
@@ -138,10 +139,29 @@
             });
         }
 
+        function updateFilterPreview() {
+            const selectedLv = Array.from(document.querySelectorAll('.level-checkbox:checked'))
+                .map(cb => `Lv.${cb.value}`).join(', ');
+            const selectedAttrs = Array.from(document.querySelectorAll('.attr-checkbox:checked'))
+                .map(cb => cb.value).join(', ');
+            const minBpm = parseInt(document.getElementById('min-bpm').value) || '-';
+            const maxBpm = parseInt(document.getElementById('max-bpm').value) || '-';
+            const minNotes = parseInt(document.getElementById('min-notes').value) || '-';
+
+            let previewHTML = '';
+            if (selectedLv) previewHTML += `<p>🎵 レベル: ${selectedLv}</p>`;
+            if (selectedAttrs) previewHTML += `<p>✨ 属性: ${selectedAttrs}</p>`;
+            previewHTML += `<p>⚡ BPM: ${minBpm} ~ ${maxBpm}</p>`;
+            if (minNotes !== '-') previewHTML += `<p>🎹 最低Notes: ${minNotes}</p>`;
+
+            document.getElementById('filter-preview').innerHTML = previewHTML;
+        }
+
         function updateMatchCount() {
             const count = getFilteredSongs().length;
             document.getElementById('match-count').innerText = `該当曲数: ${count}曲 / 全${allSongs.length}曲`;
             document.getElementById('draw-button').disabled = count === 0;
+            updateFilterPreview();
         }
 
         document.getElementById('draw-button').onclick = () => {
