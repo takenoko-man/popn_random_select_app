@@ -86,6 +86,35 @@
             <button id="toggle-list" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">楽曲一覧を表示</button>
         </div>
 
+        <!-- 抽選中ローディングエリア（リッチ版用） -->
+        <div id="loading-area" class="mt-10 hidden">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner text-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
+                <p class="text-xl font-bold">抽選中...</p>
+                <p class="text-blue-100 mt-2">素敵な曲を選んでいます</p>
+            </div>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <div id="result-area" class="mt-10 hidden">
+            <div id="result-content" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
+                <div id="res-level" class="inline-block bg-white text-blue-800 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
+                <p id="res-genre" class="text-black text-sm font-bold mb-1"></p>
+                <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
+                <div class="grid grid-cols-2 gap-y-3 text-sm border-t border-blue-400 pt-6">
+                    <p>BPM: <span id="res-bpm"></span></p>
+                    <p>Notes: <span id="res-notes"></span></p>
+                    <p>演奏時間: <span id="res-time"></span></p>
+                    <div class="col-span-2">
+                        <p id="res-attributes" class="italic text-xs"></p>
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <a id="res-link" href="#" target="_blank" class="bg-white text-blue-800 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
+                </div>
+            </div>
+        </div>
+
         <!-- 楽曲一覧エリア -->
         <div id="song-list-area" class="mt-10 hidden">
             <h3 class="text-xl font-bold mb-4 text-gray-800">該当楽曲一覧</h3>
@@ -102,35 +131,6 @@
                     <tbody id="song-list-body" class="text-gray-800">
                     </tbody>
                 </table>
-            </div>
-        </div>
-
-        <!-- 抽選中ローディングエリア（リッチ版用） -->
-        <div id="loading-area" class="mt-10 hidden">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner text-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
-                <p class="text-xl font-bold">抽選中...</p>
-                <p class="text-blue-100 mt-2">素敵な曲を選んでいます</p>
-            </div>
-        </div>
-
-        <!-- 結果表示エリア -->
-        <div id="result-area" class="mt-10 hidden">
-            <div id="result-content" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
-                <div id="res-level" class="inline-block bg-white text-blue-800 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
-                <p id="res-genre" class="text-blue-100 text-sm font-bold mb-1"></p>
-                <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
-                <div class="grid grid-cols-2 gap-y-3 text-sm border-t border-blue-400 pt-6">
-                    <p>BPM: <span id="res-bpm"></span></p>
-                    <p>Notes: <span id="res-notes"></span></p>
-                    <p>演奏時間: <span id="res-time"></span></p>
-                    <div class="col-span-2">
-                        <p id="res-attributes" class="italic text-xs"></p>
-                    </div>
-                </div>
-                <div class="mt-8 text-center">
-                    <a id="res-link" href="#" target="_blank" class="bg-white text-blue-800 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
-                </div>
             </div>
         </div>
     </div>
