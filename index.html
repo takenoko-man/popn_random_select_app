@@ -26,7 +26,7 @@
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-white relative">
-    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-0 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
+    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-0 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm" style="background-image: url('background_filtered.png'); background-size: cover; background-position: center; background-repeat: no-repeat;">
         <h1 class="text-3xl font-black text-center mb-8 text-gray-900">pop'n music<br>楽曲抽選くん</h1>
 
         <div class="space-y-8 border-b pb-8 mb-8">
@@ -40,7 +40,7 @@
 
             <!-- 属性フィルター（動的生成） -->
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-3">重視する属性（複数選択可）</label>
+                <label class="block text-sm font-bold text-gray-700 mb-3">譜面属性（複数選択可）</label>
                 <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
             </div>
 
@@ -99,7 +99,7 @@
         <div id="result-area" class="mt-10 hidden">
             <div id="result-content" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
                 <div id="res-level" class="inline-block bg-white text-blue-800 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
-                <p id="res-genre" class="text-black text-sm font-bold mb-1"></p>
+                <p id="res-genre" class="text-sm font-bold mb-1"></p>
                 <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
                 <div class="grid grid-cols-2 gap-y-3 text-sm border-t border-blue-400 pt-6">
                     <p>BPM: <span id="res-bpm"></span></p>
@@ -113,6 +113,10 @@
                     <a id="res-link" href="#" target="_blank" class="bg-white text-blue-800 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
                 </div>
             </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <button id="toggle-list" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">楽曲一覧を表示</button>
         </div>
 
         <!-- 楽曲一覧エリア -->
