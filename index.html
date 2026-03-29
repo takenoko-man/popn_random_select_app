@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pop'n music Lv.49 楽曲抽選くん</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Lv.49 楽曲抽選</h1>
+
+        <div class="space-y-6 border-b pb-6 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">重視する属性（複数選択可）</label>
+                <!-- チェックボックスが動的に生成されます -->
+                <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">最低BPM</label>
+                    <input type="number" id="min-bpm" class="w-full border rounded p-2" placeholder="下限">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">最高BPM</label>
+                    <input type="number" id="max-bpm" class="w-full border rounded p-2" placeholder="上限">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">最低Notes</label>
+                    <input type="number" id="min-notes" class="w-full border rounded p-2" placeholder="例: 1500">
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition disabled:bg-gray-400">
+                この条件で曲を選ぶ！
+            </button>
+            <p id="match-count" class="text-sm text-gray-500 mt-2">読み込み中...</p>
+        </div>
+
+        <div id="result-area" class="mt-8 hidden border-t pt-6">
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 text-center">
+                <p id="res-genre" class="text-sm text-blue-600 font-bold tracking-wider mb-1"></p>
+                <h2 id="res-title" class="text-2xl font-black text-gray-900 mb-4"></h2>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4 text-left px-4">
+                    <p>BPM: <span id="res-bpm"></span></p>
+                    <p>Notes: <span id="res-notes"></span></p>
+                    <p>Time: <span id="res-time"></span></p>
+                    <p id="res-attributes" class="col-span-2 italic text-gray-500"></p>
+                </div>
+                <a id="res-link" href="#" target="_blank" class="text-blue-500 hover:underline font-medium">popn.wiki で詳細を見る</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Pythonで加工したデータをここに貼り付けます
+        // (例としてソース[1-18]から数曲抜粋した形式を入れています)
+        const allSongs = [
+    {
+        "genre": "ヘビーメタル(EX)",
+        "title": "I'm on Fire",
+        "bpm_display": "150",
+        "bpm_min": 150,
+        "bpm_max": 150,
+        "time": "1:30",
+        "notes": 1190,
+        "attributes": [
+            "縦連打",
+            "総合力",
+            "体力",
+            "辛判定",
+            "高速階段",
+            "同時押し",
+            "交互連打",
+            "左右振り",
+            "ロングポップ君"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%98%E3%83%93%E3%83%BC%E3%83%A1%E3%82%BF%E3%83%AB_ex"
+    },
+    {
+        "genre": "オイパンク0(EX)",
+        "title": "ブタパンチのテーマ",
+        "bpm_display": "90～360",
+        "bpm_min": 90,
+        "bpm_max": 360,
+        "time": "1:48",
+        "notes": 1316,
+        "attributes": [
+            "交互連打",
+            "体力",
+            "辛判定",
+            "発狂",
+            "左右振り",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AA%E3%82%A4%E3%83%91%E3%83%B3%E3%82%AF0_ex"
+    },
+    {
+        "genre": "プログレッシブバロック(EX)",
+        "title": "Übertreffen",
+        "bpm_display": "174",
+        "bpm_min": 174,
+        "bpm_max": 174,
+        "time": "1:34",
+        "notes": 1280,
+        "attributes": [
+            "階段",
+            "片手処理",
+            "左右振り",
+            "体力",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%AC%E3%83%83%E3%82%B7%E3%83%96%E3%83%90%E3%83%AD%E3%83%83%E3%82%AF_ex"
+    },
+    {
+        "genre": "ニエンテ(EX)",
+        "title": "neu",
+        "bpm_display": "199",
+        "bpm_min": 199,
+        "bpm_max": 199,
+        "time": "2:21",
+        "notes": 1899,
+        "attributes": [
+            "総合力",
+            "同時押し",
+            "階段",
+            "体力",
+            "発狂",
+            "ラスト殺し",
+            "辛ゲージ"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%8B%E3%82%A8%E3%83%B3%E3%83%86_ex"
+    },
+    {
+        "genre": "メタリックオペラ(EX)",
+        "title": "Geiselhaus",
+        "bpm_display": "180",
+        "bpm_min": 180,
+        "bpm_max": 180,
+        "time": "1:47",
+        "notes": 1481,
+        "attributes": [
+            "左右振り",
+            "片手処理",
+            "体力",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%A1%E3%82%BF%E3%83%AA%E3%83%83%E3%82%AF%E3%82%AA%E3%83%9A%E3%83%A9_ex"
+    },
+    {
+        "genre": "スケールアウト(EX)",
+        "title": "BabeL 〜Next Story〜",
+        "bpm_display": "100～173",
+        "bpm_min": 100,
+        "bpm_max": 173,
+        "time": "2:03",
+        "notes": 1756,
+        "attributes": [
+            "総合力",
+            "体力",
+            "ソフラン",
+            "同時押し",
+            "縦連打",
+            "発狂",
+            "ラスト殺し",
+            "辛ゲージ"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B9%E3%82%B1%E3%83%BC%E3%83%AB%E3%82%A2%E3%82%A6%E3%83%88_ex"
+    },
+    {
+        "genre": "ルイナススピリチュアル(EX)",
+        "title": "Remain",
+        "bpm_display": "150",
+        "bpm_min": 150,
+        "bpm_max": 150,
+        "time": "1:51",
+        "notes": 1254,
+        "attributes": [
+            "階段",
+            "縦連打",
+            "発狂",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%AB%E3%82%A4%E3%83%8A%E3%82%B9%E3%82%B9%E3%83%94%E3%83%AA%E3%83%81%E3%83%A5%E3%82%A2%E3%83%AB_ex"
+    },
+    {
+        "genre": "ヴェラム(EX)",
+        "title": "Eine Haube 〜聖地の果てにあるもの〜",
+        "bpm_display": "170",
+        "bpm_min": 170,
+        "bpm_max": 170,
+        "time": "1:50",
+        "notes": 1328,
+        "attributes": [
+            "発狂",
+            "階段",
+            "同時押し",
+            "螺旋階段"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%B4%E3%82%A7%E3%83%A9%E3%83%A0_ex"
+    },
+    {
+        "genre": "アンセム(EX)",
+        "title": "天空の夜明け",
+        "bpm_display": "150",
+        "bpm_min": 150,
+        "bpm_max": 150,
+        "time": "2:09",
+        "notes": 1472,
+        "attributes": [
+            "乱打",
+            "片手処理",
+            "階段",
+            "二重階段",
+            "発狂",
+            "体力",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%A2%E3%83%B3%E3%82%BB%E3%83%A0_%E5%A4%A9%E7%A9%BA%E3%81%AE%E5%A4%9C%E6%98%8E%E3%81%91_ex"
+    },
+    {
+        "genre": "インボルク(EX)",
+        "title": "生命の焔纏いて",
+        "bpm_display": "184",
+        "bpm_min": 184,
+        "bpm_max": 184,
+        "time": "2:00",
+        "notes": 1560,
+        "attributes": [
+            "片手処理",
+            "縦連打",
+            "体力",
+            "辛ゲージ",
+            "左右振り(片手振り)"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%A4%E3%83%B3%E3%83%9C%E3%83%AB%E3%82%AF_ex"
+    },
+    {
+        "genre": "C18H27NO3(EX)",
+        "title": "C18H27NO3",
+        "bpm_display": "210",
+        "bpm_min": 210,
+        "bpm_max": 210,
+        "time": "2:00",
+        "notes": 1490,
+        "attributes": [
+            "同時押し",
+            "発狂",
+            "左右振り",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/c18h27no3_ex"
+    },
+    {
+        "genre": "ジャッジメント(EX)",
+        "title": "終末を追う者",
+        "bpm_display": "185",
+        "bpm_min": 185,
+        "bpm_max": 185,
+        "time": "1:46",
+        "notes": 1525,
+        "attributes": [
+            "総合力",
+            "ラスト殺し",
+            "片手処理",
+            "左右振り",
+            "階段(X)",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B8%E3%83%A3%E3%83%83%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88_ex"
+    },
+    {
+        "genre": "スペースレクイエム(EX)",
+        "title": "Zirkfied",
+        "bpm_display": "210",
+        "bpm_min": 210,
+        "bpm_max": 210,
+        "time": "2:09",
+        "notes": 1539,
+        "attributes": [
+            "総合力",
+            "辛ゲージ",
+            "体力",
+            "片手処理",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B9%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%AC%E3%82%AF%E3%82%A4%E3%82%A8%E3%83%A0_ex"
+    },
+    {
+        "genre": "ゾディアックオラクル7(EX)",
+        "title": "アストライアの双皿",
+        "bpm_display": "173",
+        "bpm_min": 173,
+        "bpm_max": 173,
+        "time": "2:04",
+        "notes": 1515,
+        "attributes": [
+            "総合力",
+            "乱打",
+            "縦連打",
+            "片手処理",
+            "体力",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%BE%E3%83%87%E3%82%A3%E3%82%A2%E3%83%83%E3%82%AF%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB7_ex"
+    },
+    {
+        "genre": "ハードルネッサンス(EX)",
+        "title": "Elemental Creation",
+        "bpm_display": "212",
+        "bpm_min": 212,
+        "bpm_max": 212,
+        "time": "2:09",
+        "notes": 1584,
+        "attributes": [
+            "辛ゲージ",
+            "片手処理",
+            "階段",
+            "同時押し",
+            "乱打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%AB%E3%83%8D%E3%83%83%E3%82%B5%E3%83%B3%E3%82%B9_ex"
+    },
+    {
+        "genre": "ブラッドメタル(EX)",
+        "title": "IX",
+        "bpm_display": "198",
+        "bpm_min": 198,
+        "bpm_max": 198,
+        "time": "2:00",
+        "notes": 1503,
+        "attributes": [
+            "発狂",
+            "二重階段",
+            "総合力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%96%E3%83%A9%E3%83%83%E3%83%89%E3%83%A1%E3%82%BF%E3%83%AB_ex"
+    },
+    {
+        "genre": "DIAVOLO(EX)",
+        "title": "DIAVOLO",
+        "bpm_display": "160",
+        "bpm_min": 160,
+        "bpm_max": 160,
+        "time": "1:47",
+        "notes": 1464,
+        "attributes": [
+            "階段",
+            "発狂",
+            "ラスト殺し",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/diavolo_ex"
+    },
+    {
+        "genre": "Innocence(EX)",
+        "title": "Innocence",
+        "bpm_display": "120～180",
+        "bpm_min": 120,
+        "bpm_max": 180,
+        "time": "2:01",
+        "notes": 1428,
+        "attributes": [
+            "総合力",
+            "発狂",
+            "階段",
+            "片手処理",
+            "縦連打",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/innocence_ex"
+    },
+    {
+        "genre": "perditus†paradisus(EX)",
+        "title": "perditus†paradisus",
+        "bpm_display": "172",
+        "bpm_min": 172,
+        "bpm_max": 172,
+        "time": "2:05",
+        "notes": 1499,
+        "attributes": [
+            "階段",
+            "体力",
+            "ラスト殺し",
+            "交互連打",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/perditus_paradisus_ex"
+    },
+    {
+        "genre": "QuoN(EX)",
+        "title": "QuoN",
+        "bpm_display": "168",
+        "bpm_min": 168,
+        "bpm_max": 168,
+        "time": "2:12",
+        "notes": 1518,
+        "attributes": [
+            "総合力",
+            "階段",
+            "片手処理",
+            "発狂",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/quon_ex"
+    },
+    {
+        "genre": "RINИE(EX)",
+        "title": "RINИE",
+        "bpm_display": "198",
+        "bpm_min": 198,
+        "bpm_max": 198,
+        "time": "2:04",
+        "notes": 1535,
+        "attributes": [
+            "総合力",
+            "発狂",
+            "同時押し",
+            "左右振り",
+            "階段",
+            "交互連打"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/rin%D0%B8e_ex"
+    },
+    {
+        "genre": "激走！！ヤング☆ダンプ！(EX)",
+        "title": "激走！！ヤング☆ダンプ！",
+        "bpm_display": "180",
+        "bpm_min": 180,
+        "bpm_max": 180,
+        "time": "2:01",
+        "notes": 1704,
+        "attributes": [
+            "辛ゲージ",
+            "階段(三重&二重)",
+            "体力",
+            "同時押し",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E6%BF%80%E8%B5%B0_%E3%83%A4%E3%83%B3%E3%82%B0%E2%98%86%E3%83%80%E3%83%B3%E3%83%97_ex"
+    },
+    {
+        "genre": "恋歌疾風！かるたクイーンいろは(EX)",
+        "title": "恋歌疾風！かるたクイーンいろは",
+        "bpm_display": "120～168",
+        "bpm_min": 120,
+        "bpm_max": 168,
+        "time": "2:02",
+        "notes": 1589,
+        "attributes": [
+            "辛ゲージ",
+            "総合力",
+            "体力",
+            "ラスト殺し",
+            "階段",
+            "縦連打"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E6%81%8B%E6%AD%8C%E7%96%BE%E9%A2%A8_%E3%81%8B%E3%82%8B%E3%81%9F%E3%82%AF%E3%82%A4%E3%83%BC%E3%83%B3%E3%81%84%E3%82%8D%E3%81%AF_ex"
+    },
+    {
+        "genre": "ジオメトリック∮ティーパーティー(EX)",
+        "title": "ジオメトリック∮ティーパーティー",
+        "bpm_display": "132～188",
+        "bpm_min": 132,
+        "bpm_max": 188,
+        "time": "2:03",
+        "notes": 1492,
+        "attributes": [
+            "発狂",
+            "交互連打",
+            "同時押し",
+            "階段",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B8%E3%82%AA%E3%83%A1%E3%83%88%E3%83%AA%E3%83%83%E3%82%AF%E3%83%BB%E3%83%86%E3%82%A3%E3%83%BC%E3%83%91%E3%83%BC%E3%83%86%E3%82%A3%E3%83%BC_ex"
+    },
+    {
+        "genre": "CHERNOBOG(EX)",
+        "title": "CHERNOBOG",
+        "bpm_display": "200",
+        "bpm_min": 200,
+        "bpm_max": 200,
+        "time": "1:57",
+        "notes": 1455,
+        "attributes": [
+            "発狂",
+            "片手処理（軸連打",
+            "交互連打）",
+            "体力",
+            "乱打"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/chernobog_ex"
+    },
+    {
+        "genre": "StrayedCatz(EX)",
+        "title": "StrayedCatz",
+        "bpm_display": "303",
+        "bpm_min": 303,
+        "bpm_max": 303,
+        "time": "2:00",
+        "notes": 1358,
+        "attributes": [
+            "階段",
+            "片手処理",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/strayedcatz_ex"
+    },
+    {
+        "genre": "trideca(EX)",
+        "title": "trideca",
+        "bpm_display": "148",
+        "bpm_min": 148,
+        "bpm_max": 148,
+        "time": "1:57",
+        "notes": 1533,
+        "attributes": [
+            "ラスト殺し",
+            "階段",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/trideca_ex"
+    },
+    {
+        "genre": "Triple Counter(EX)",
+        "title": "Triple Counter",
+        "bpm_display": "216",
+        "bpm_min": 216,
+        "bpm_max": 216,
+        "time": "2:02",
+        "notes": 1540,
+        "attributes": [
+            "辛ゲージ",
+            "発狂",
+            "同時押し",
+            "階段",
+            "体力",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/triple_counter_ex"
+    },
+    {
+        "genre": "未完成ノ蒸氣驅動乙女(EX)",
+        "title": "未完成ノ蒸氣驅動乙女",
+        "bpm_display": "170",
+        "bpm_min": 170,
+        "bpm_max": 170,
+        "time": "1:53",
+        "notes": 1200,
+        "attributes": [
+            "階段",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E6%9C%AA%E5%AE%8C%E6%88%90%E3%83%8E%E8%92%B8%E6%B0%A3%E9%A9%85%E5%8B%95%E4%B9%99%E5%A5%B3_ex"
+    },
+    {
+        "genre": "24/7 Popperz(EX)",
+        "title": "24/7 Popperz",
+        "bpm_display": "202",
+        "bpm_min": 202,
+        "bpm_max": 202,
+        "time": "1:59",
+        "notes": 1642,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "階段",
+            "体力",
+            "交互連打",
+            "辛ゲージ",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/24_7_popperz_ex"
+    },
+    {
+        "genre": "Black Emperor(EX)",
+        "title": "Black Emperor",
+        "bpm_display": "30～195",
+        "bpm_min": 30,
+        "bpm_max": 195,
+        "time": "1:59",
+        "notes": 1513,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "縦連打",
+            "階段",
+            "同時押し",
+            "乱打",
+            "交互連打",
+            "ソフラン"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/black_emperor_ex"
+    },
+    {
+        "genre": "INF-B《L-aste-R》(EX)",
+        "title": "INF-B《L-aste-R》",
+        "bpm_display": "197",
+        "bpm_min": 197,
+        "bpm_max": 197,
+        "time": "1:52",
+        "notes": 1412,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "二重階段",
+            "片手処理",
+            "交互連打",
+            "乱打",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/inf-b_l-aste-r_ex"
+    },
+    {
+        "genre": "K∀MUY(EX)",
+        "title": "K∀MUY",
+        "bpm_display": "265",
+        "bpm_min": 265,
+        "bpm_max": 265,
+        "time": "2:01",
+        "notes": 1667,
+        "attributes": [
+            "ロングポップ君",
+            "クロス・スイッチ",
+            "同時押し",
+            "縦連打",
+            "発狂",
+            "辛ゲージ"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/k_muy_ex"
+    },
+    {
+        "genre": "moon_child(EX)",
+        "title": "moon_child",
+        "bpm_display": "130～160",
+        "bpm_min": 130,
+        "bpm_max": 160,
+        "time": "2:08",
+        "notes": 1300,
+        "attributes": [
+            "発狂",
+            "階段",
+            "二重階段",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/moon_child_ex"
+    },
+    {
+        "genre": "Prey(EX)",
+        "title": "Prey",
+        "bpm_display": "210",
+        "bpm_min": 210,
+        "bpm_max": 210,
+        "time": "1:37",
+        "notes": 1239,
+        "attributes": [
+            "ロングポップ君",
+            "体力",
+            "乱打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/prey_ex"
+    },
+    {
+        "genre": "SailRen(EX)",
+        "title": "SailRen",
+        "bpm_display": "194～204",
+        "bpm_min": 194,
+        "bpm_max": 204,
+        "time": "2:06",
+        "notes": 1228,
+        "attributes": [
+            "ロングポップ君",
+            "片手処理",
+            "階段",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/sailren_ex"
+    },
+    {
+        "genre": "Sky High(EX)",
+        "title": "Sky High",
+        "bpm_display": "153",
+        "bpm_min": 153,
+        "bpm_max": 153,
+        "time": "2:05",
+        "notes": 1527,
+        "attributes": [
+            "二重階段",
+            "ラスト殺し",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/sky_high_ex"
+    },
+    {
+        "genre": "the Chameleon(EX)",
+        "title": "the Chameleon",
+        "bpm_display": "93～126",
+        "bpm_min": 93,
+        "bpm_max": 126,
+        "time": "1:59",
+        "notes": 1498,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "体力",
+            "発狂",
+            "階段",
+            "ずれ押し",
+            "ソフラン"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/the_chameleon_ex"
+    },
+    {
+        "genre": "XROSS INFECTION(EX)",
+        "title": "XROSS INFECTION",
+        "bpm_display": "194",
+        "bpm_min": 194,
+        "bpm_max": 194,
+        "time": "1:55",
+        "notes": 1515,
+        "attributes": [
+            "ロングポップ君",
+            "階段(X階段)",
+            "ラスト殺し",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/xross_infection_ex"
+    },
+    {
+        "genre": "限界食堂(EX)",
+        "title": "限界食堂",
+        "bpm_display": "101～202",
+        "bpm_min": 101,
+        "bpm_max": 202,
+        "time": "2:10",
+        "notes": 1690,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "ソフラン",
+            "交互連打",
+            "階段",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E9%99%90%E7%95%8C%E9%A3%9F%E5%A0%82_ex"
+    },
+    {
+        "genre": "最小三倍完全数(EX)",
+        "title": "最小三倍完全数",
+        "bpm_display": "220",
+        "bpm_min": 220,
+        "bpm_max": 220,
+        "time": "1:48",
+        "notes": 1385,
+        "attributes": [
+            "ロングポップ君",
+            "交互連打",
+            "同時押し",
+            "軸連打",
+            "発狂",
+            "ラス殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E6%9C%80%E5%B0%8F%E4%B8%89%E5%80%8D%E5%AE%8C%E5%85%A8%E6%95%B0_ex"
+    },
+    {
+        "genre": "西馬込交通曲(EX)",
+        "title": "西馬込交通曲",
+        "bpm_display": "80～380",
+        "bpm_min": 80,
+        "bpm_max": 380,
+        "time": "2:00",
+        "notes": 1583,
+        "attributes": [
+            "ロングポップ君",
+            "クロス・スイッチ",
+            "階段",
+            "左右振り",
+            "片手処理",
+            "ソフラン",
+            "ラスト殺し",
+            "辛ゲージ"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E8%A5%BF%E9%A6%AC%E8%BE%BC%E4%BA%A4%E9%80%9A%E6%9B%B2_ex"
+    },
+    {
+        "genre": "バトルダンス(UPPER)(EX)",
+        "title": "シャムシールの舞",
+        "bpm_display": "100～155",
+        "bpm_min": 100,
+        "bpm_max": 155,
+        "time": "1:52",
+        "notes": 1467,
+        "attributes": [
+            "ロングポップ君",
+            "クロス・スイッチ",
+            "総合力",
+            "三重階段"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%90%E3%83%88%E3%83%AB%E3%83%80%E3%83%B3%E3%82%B9_upper_ex"
+    },
+    {
+        "genre": "ラメント(UPPER)(EX)",
+        "title": "雫",
+        "bpm_display": "95-210",
+        "bpm_min": 95,
+        "bpm_max": 210,
+        "time": "2:04",
+        "notes": 1545,
+        "attributes": [
+            "ロングポップ君",
+            "片手処理",
+            "ソフラン",
+            "辛ゲージ",
+            "発狂",
+            "ズレ押し",
+            "同時押し",
+            "交互連打"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%A9%E3%83%A1%E3%83%B3%E3%83%88_upper_ex"
+    },
+    {
+        "genre": "Festum Duodecimum!(EX)",
+        "title": "Festum Duodecimum!",
+        "bpm_display": "70～200",
+        "bpm_min": 70,
+        "bpm_max": 200,
+        "time": "1:56",
+        "notes": 1297,
+        "attributes": [
+            "ロングポップ君",
+            "ソフラン",
+            "階段",
+            "縦連打",
+            "交互連打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/festum_duodecimum_ex"
+    },
+    {
+        "genre": "Lachryma《Re:Queen'M》(EX)",
+        "title": "Lachryma《Re:Queen'M》",
+        "bpm_display": "236",
+        "bpm_min": 236,
+        "bpm_max": 236,
+        "time": "1:59",
+        "notes": 1534,
+        "attributes": [
+            "ロングポップ君",
+            "交互連打",
+            "階段",
+            "同時押し",
+            "左右振り",
+            "体力",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/lachryma_re_queen_m_ex"
+    },
+    {
+        "genre": "Last Twilight(EX)",
+        "title": "Last Twilight",
+        "bpm_display": "198",
+        "bpm_min": 198,
+        "bpm_max": 198,
+        "time": "",
+        "notes": 1482,
+        "attributes": [
+            "縦連打",
+            "同時押し",
+            "階段",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/last_twilight_ex"
+    },
+    {
+        "genre": "MADSPEED狂信道(UPPER)(EX)",
+        "title": "MADSPEED狂信道",
+        "bpm_display": "240～300",
+        "bpm_min": 240,
+        "bpm_max": 300,
+        "time": "1:50",
+        "notes": 1646,
+        "attributes": [
+            "ロングポップ君",
+            "ソフラン",
+            "辛ゲージ",
+            "階段"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/madspeed%E7%8B%82%E4%BF%A1%E9%81%93_upper_ex"
+    },
+    {
+        "genre": "ΩVERSOUL(EX)",
+        "title": "ΩVERSOUL",
+        "bpm_display": "155",
+        "bpm_min": 155,
+        "bpm_max": 155,
+        "time": "1:53",
+        "notes": 1555,
+        "attributes": [
+            "ロングポップ君",
+            "階段",
+            "同時押し",
+            "辛ゲージ",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%CF%89versoul_ex"
+    },
+    {
+        "genre": "Timepiece phase II(EX)",
+        "title": "Timepiece phase II",
+        "bpm_display": "287",
+        "bpm_min": 287,
+        "bpm_max": 287,
+        "time": "1:51",
+        "notes": 1340,
+        "attributes": [
+            "ロングポップ君",
+            "階段",
+            "交互連打",
+            "縦連打",
+            "二重階段",
+            "発狂",
+            "体力",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/timepiece_phase_ii_ex"
+    },
+    {
+        "genre": "Vinculum stellarum(EX)",
+        "title": "Vinculum stellarum",
+        "bpm_display": "160",
+        "bpm_min": 160,
+        "bpm_max": 160,
+        "time": "2:13",
+        "notes": 1536,
+        "attributes": [
+            "ロングポップ君",
+            "階段",
+            "縦連"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/vinculum_stellarum_ex"
+    },
+    {
+        "genre": "zeeros(EX)",
+        "title": "zeeros",
+        "bpm_display": "146〜187",
+        "bpm_min": 146,
+        "bpm_max": 187,
+        "time": "2:00",
+        "notes": 1243,
+        "attributes": [
+            "ロングポップ君",
+            "片手処理",
+            "階段",
+            "ソフラン",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/zeeros_ex"
+    },
+    {
+        "genre": "鎬(EX)",
+        "title": "鎬",
+        "bpm_display": "134～185",
+        "bpm_min": 134,
+        "bpm_max": 185,
+        "time": "",
+        "notes": 1494,
+        "attributes": [
+            "ソフラン",
+            "同時押し",
+            "左右振り",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E9%8E%AC_ex"
+    },
+    {
+        "genre": "世界の果てに約束の凱歌を(EX)",
+        "title": "世界の果てに約束の凱歌を",
+        "bpm_display": "192～195",
+        "bpm_min": 192,
+        "bpm_max": 195,
+        "time": "",
+        "notes": 1518,
+        "attributes": [
+            "ロングポップ君",
+            "同時押し",
+            "階段",
+            "交互連打",
+            "縦連打",
+            "左右振り"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E4%B8%96%E7%95%8C%E3%81%AE%E6%9E%9C%E3%81%A6%E3%81%AB%E7%B4%84%E6%9D%9F%E3%81%AE%E5%87%B1%E6%AD%8C%E3%82%92_ex"
+    },
+    {
+        "genre": "世界の果てに約束の凱歌を -Advent-(EX)",
+        "title": "世界の果てに約束の凱歌を -Advent-",
+        "bpm_display": "70～210",
+        "bpm_min": 70,
+        "bpm_max": 210,
+        "time": "",
+        "notes": 1641,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "ソフラン",
+            "同時押し",
+            "階段",
+            "縦連打",
+            "左右振り"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E4%B8%96%E7%95%8C%E3%81%AE%E6%9E%9C%E3%81%A6%E3%81%AB%E7%B4%84%E6%9D%9F%E3%81%AE%E5%87%B1%E6%AD%8C%E3%82%92_-advent-_ex"
+    },
+    {
+        "genre": "バッドエンド・シンドローム(EX)",
+        "title": "バッドエンド・シンドローム",
+        "bpm_display": "126",
+        "bpm_min": 126,
+        "bpm_max": 126,
+        "time": "",
+        "notes": 1453,
+        "attributes": [
+            "二重階段",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%90%E3%83%83%E3%83%89%E3%82%A8%E3%83%B3%E3%83%89%E3%83%BB%E3%82%B7%E3%83%B3%E3%83%89%E3%83%AD%E3%83%BC%E3%83%A0_ex"
+    },
+    {
+        "genre": "ピアノ独奏無言歌 \"灰燼\"(EX)",
+        "title": "ピアノ独奏無言歌 “灰燼”",
+        "bpm_display": "100～200",
+        "bpm_min": 100,
+        "bpm_max": 200,
+        "time": "",
+        "notes": 1647,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "ソフラン",
+            "階段",
+            "縦連打",
+            "片手処理",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%94%E3%82%A2%E3%83%8E%E7%8B%AC%E5%A5%8F%E7%84%A1%E8%A8%80%E6%AD%8C_%E7%81%B0%E7%87%BC_ex"
+    },
+    {
+        "genre": "彼岸花(EX)",
+        "title": "彼岸花",
+        "bpm_display": "189",
+        "bpm_min": 189,
+        "bpm_max": 189,
+        "time": "",
+        "notes": 1597,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "階段",
+            "乱打",
+            "片手処理",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E5%BD%BC%E5%B2%B8%E8%8A%B1_ex"
+    },
+    {
+        "genre": "Bossa Gabba(EX)",
+        "title": "Bossa Gabba",
+        "bpm_display": "200",
+        "bpm_min": 200,
+        "bpm_max": 200,
+        "time": "",
+        "notes": 1416,
+        "attributes": [
+            "ロングポップ君",
+            "縦連打",
+            "乱打",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/bossa_gabba_ex"
+    },
+    {
+        "genre": "IDM(UPPER)(EX)",
+        "title": "ZETA～素数の世界と超越者～",
+        "bpm_display": "90～180",
+        "bpm_min": 90,
+        "bpm_max": 180,
+        "time": "2:05",
+        "notes": 1511,
+        "attributes": [
+            "ロングポップ君",
+            "階段",
+            "ソフラン",
+            "片手処理",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/idm_upper_ex"
+    },
+    {
+        "genre": "Triple Cross(EX)",
+        "title": "Triple Cross",
+        "bpm_display": "196",
+        "bpm_min": 196,
+        "bpm_max": 196,
+        "time": "",
+        "notes": 1546,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "同時押し",
+            "階段",
+            "二重階段",
+            "乱打",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/triple_cross_ex"
+    },
+    {
+        "genre": "virkatoの主題によるperson09風超絶技巧変奏曲(EX)",
+        "title": "virkatoの主題によるperson09風超絶技巧変奏曲",
+        "bpm_display": "95～180",
+        "bpm_min": 95,
+        "bpm_max": 180,
+        "time": "",
+        "notes": 1533,
+        "attributes": [
+            "ソフラン",
+            "階段",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/virkato%E3%81%AE%E4%B8%BB%E9%A1%8C%E3%81%AB%E3%82%88%E3%82%8Bperson09%E9%A2%A8%E8%B6%85%E7%B5%B6%E6%8A%80%E5%B7%A7%E5%A4%89%E5%A5%8F%E6%9B%B2_ex"
+    },
+    {
+        "genre": "粋 -IKI-(EX)",
+        "title": "粋 -IKI-",
+        "bpm_display": "190",
+        "bpm_min": 190,
+        "bpm_max": 190,
+        "time": "",
+        "notes": 1539,
+        "attributes": [
+            "ロングポップ君",
+            "判定難",
+            "辛ゲージ",
+            "左右振り",
+            "階段",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E7%B2%8B_-iki-_ex"
+    },
+    {
+        "genre": "スイーツプログレッシヴ(UPPER)(EX)",
+        "title": "ちくわパフェだよ☆CKP",
+        "bpm_display": "205",
+        "bpm_min": 205,
+        "bpm_max": 205,
+        "time": "1:56",
+        "notes": 1788,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "乱打",
+            "階段",
+            "同時押し",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B9%E3%82%A4%E3%83%BC%E3%83%84%E3%83%97%E3%83%AD%E3%82%B0%E3%83%AC%E3%83%83%E3%82%B7%E3%83%B4_upper_ex"
+    },
+    {
+        "genre": "葬送のエウロパ(EX)",
+        "title": "葬送のエウロパ",
+        "bpm_display": "148",
+        "bpm_min": 148,
+        "bpm_max": 148,
+        "time": "1:54",
+        "notes": 1647,
+        "attributes": [
+            "辛ゲージ",
+            "同時押し",
+            "階段",
+            "体力",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E8%91%AC%E9%80%81%E3%81%AE%E3%82%A8%E3%82%A6%E3%83%AD%E3%83%91_ex"
+    },
+    {
+        "genre": "天泣(EX)",
+        "title": "天泣",
+        "bpm_display": "150",
+        "bpm_min": 150,
+        "bpm_max": 150,
+        "time": "2:05",
+        "notes": 1644,
+        "attributes": [
+            "辛ゲージ",
+            "総合力",
+            "階段",
+            "乱打",
+            "同時押し",
+            "交互連打",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E5%A4%A9%E6%B3%A3_ex"
+    },
+    {
+        "genre": "明滅の果てに(EX)",
+        "title": "明滅の果てに",
+        "bpm_display": "264",
+        "bpm_min": 264,
+        "bpm_max": 264,
+        "time": "",
+        "notes": 1536,
+        "attributes": [
+            "体力",
+            "縦連打",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E6%98%8E%E6%BB%85%E3%81%AE%E6%9E%9C%E3%81%A6%E3%81%AB_ex"
+    },
+    {
+        "genre": "萌えおこし電波ソング(UPPER)(EX)",
+        "title": "めうめうぺったんたん！！",
+        "bpm_display": "185",
+        "bpm_min": 185,
+        "bpm_max": 185,
+        "time": "2:00",
+        "notes": 1888,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "同時押し",
+            "左右振り",
+            "発狂",
+            "交互連打",
+            "体力"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E8%90%8C%E3%81%88%E3%81%8A%E3%81%93%E3%81%97%E9%9B%BB%E6%B3%A2%E3%82%BD%E3%83%B3%E3%82%B0_upper_ex"
+    },
+    {
+        "genre": "Candy Crime Toe Shoes(EX)",
+        "title": "Candy Crime Toe Shoes",
+        "bpm_display": "72～202",
+        "bpm_min": 72,
+        "bpm_max": 202,
+        "time": "",
+        "notes": 1439,
+        "attributes": [
+            "ソフラン",
+            "階段",
+            "交互連打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/candy_crime_toe_shoes_ex"
+    },
+    {
+        "genre": "Hades Doll(EX)",
+        "title": "Hades Doll",
+        "bpm_display": "185",
+        "bpm_min": 185,
+        "bpm_max": 185,
+        "time": "1:51",
+        "notes": 1536,
+        "attributes": [
+            "ロングポップ君",
+            "同時押し",
+            "乱打",
+            "左右振り",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/hades_doll_ex"
+    },
+    {
+        "genre": "ma plume(EX)",
+        "title": "ma plume",
+        "bpm_display": "165",
+        "bpm_min": 165,
+        "bpm_max": 165,
+        "time": "2:06",
+        "notes": 1782,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "総合力",
+            "同時押し",
+            "階段",
+            "乱打"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/ma_plume_ex"
+    },
+    {
+        "genre": "Megalara Garuda(EX)",
+        "title": "Megalara Garuda",
+        "bpm_display": "180",
+        "bpm_min": 180,
+        "bpm_max": 180,
+        "time": "2:00",
+        "notes": 1468,
+        "attributes": [
+            "ロングポップ君",
+            "乱打",
+            "同時押し",
+            "縦連打",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/megalara_garuda_ex"
+    },
+    {
+        "genre": "pump up dA CORE(EX)",
+        "title": "pump up dA CORE",
+        "bpm_display": "186",
+        "bpm_min": 186,
+        "bpm_max": 186,
+        "time": "",
+        "notes": 1543,
+        "attributes": [
+            "辛ゲージ",
+            "左右振り",
+            "体力",
+            "発狂",
+            "ラス殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/pump_up_da_core_ex"
+    },
+    {
+        "genre": "Satan(EX)",
+        "title": "Satan",
+        "bpm_display": "210",
+        "bpm_min": 210,
+        "bpm_max": 210,
+        "time": "1:27",
+        "notes": 1212,
+        "attributes": [
+            "ロングポップ君",
+            "交互連打",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/satan_ex"
+    },
+    {
+        "genre": "Unknown Region(EX)",
+        "title": "Unknown Region",
+        "bpm_display": "198",
+        "bpm_min": 198,
+        "bpm_max": 198,
+        "time": "",
+        "notes": 1534,
+        "attributes": [
+            "同時押し",
+            "二重階段",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/unknown_region_ex"
+    },
+    {
+        "genre": "Versa(UPPER)(EX)",
+        "title": "Versa",
+        "bpm_display": "90～180",
+        "bpm_min": 90,
+        "bpm_max": 180,
+        "time": "1:56",
+        "notes": 1504,
+        "attributes": [
+            "ロングポップ君",
+            "ソフラン",
+            "階段",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/versa_upper_ex"
+    },
+    {
+        "genre": "VOLAQUAS(EX)",
+        "title": "VOLAQUAS",
+        "bpm_display": "212",
+        "bpm_min": 212,
+        "bpm_max": 212,
+        "time": "",
+        "notes": 1535,
+        "attributes": [
+            "総合力",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/volaquas_ex"
+    },
+    {
+        "genre": "嵐の唄(EX)",
+        "title": "嵐の唄",
+        "bpm_display": "174",
+        "bpm_min": 174,
+        "bpm_max": 174,
+        "time": "",
+        "notes": 1531,
+        "attributes": [
+            "ロングポップ君",
+            "発狂",
+            "階段",
+            "交互連打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E5%B5%90%E3%81%AE%E5%94%84_ex"
+    },
+    {
+        "genre": "ホットドッグドカぐいレース!!!!(EX)",
+        "title": "ホットドッグドカぐいレース!!!!",
+        "bpm_display": "35～210",
+        "bpm_min": 35,
+        "bpm_max": 210,
+        "time": "",
+        "notes": 1535,
+        "attributes": [
+            "ロングポップ君",
+            "ソフラン",
+            "左右振り",
+            "乱打",
+            "縦連",
+            "同時押し",
+            "階段",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%9B%E3%83%83%E3%83%88%E3%83%89%E3%83%83%E3%82%B0%E3%83%89%E3%82%AB%E3%81%90%E3%81%84%E3%83%AC%E3%83%BC%E3%82%B9_ex"
+    },
+    {
+        "genre": "真夜中のun thé noir(EX)",
+        "title": "真夜中のun thé noir",
+        "bpm_display": "192",
+        "bpm_min": 192,
+        "bpm_max": 192,
+        "time": "",
+        "notes": 1535,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "乱打",
+            "階段",
+            "同時押し",
+            "ズレ押し",
+            "片手処理",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E7%9C%9F%E5%A4%9C%E4%B8%AD%E3%81%AEun_the_noir_ex"
+    },
+    {
+        "genre": "竜を狩る者(EX)",
+        "title": "竜を狩る者",
+        "bpm_display": "194",
+        "bpm_min": 194,
+        "bpm_max": 194,
+        "time": "",
+        "notes": 1529,
+        "attributes": [
+            "ロングポップ君",
+            "階段",
+            "発狂",
+            "同時押し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E7%AB%9C%E3%82%92%E7%8B%A9%E3%82%8B%E8%80%85_ex"
+    },
+    {
+        "genre": "AVEL(EX)",
+        "title": "AVEL",
+        "bpm_display": "158",
+        "bpm_min": 158,
+        "bpm_max": 158,
+        "time": "1:57",
+        "notes": 1570,
+        "attributes": [
+            "ロングポップ君",
+            "辛ゲージ",
+            "総合力",
+            "乱打",
+            "階段",
+            "同時押し",
+            "縦連打",
+            "左右振り",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/avel_ex"
+    },
+    {
+        "genre": "MAX KARAI(EX)",
+        "title": "MAX KARAI",
+        "bpm_display": "195～285",
+        "bpm_min": 195,
+        "bpm_max": 285,
+        "time": "",
+        "notes": 1542,
+        "attributes": [
+            "辛ゲージ",
+            "ソフラン",
+            "総合力",
+            "同時押し",
+            "乱打",
+            "階段",
+            "交互連打",
+            "発狂"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/max_karai_ex"
+    },
+    {
+        "genre": "No Border(EX)",
+        "title": "No Border",
+        "bpm_display": "150",
+        "bpm_min": 150,
+        "bpm_max": 150,
+        "time": "2:08",
+        "notes": 1633,
+        "attributes": [
+            "辛ゲージ",
+            "乱打",
+            "階段",
+            "同時押し",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/no_border_ex"
+    },
+    {
+        "genre": "Step forward(EX)",
+        "title": "Step forward",
+        "bpm_display": "145",
+        "bpm_min": 145,
+        "bpm_max": 145,
+        "time": "1:58",
+        "notes": 1533,
+        "attributes": [
+            "ロングポップ君",
+            "総合力",
+            "階段",
+            "乱打",
+            "同時押し",
+            "縦連打",
+            "発狂",
+            "変拍子",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/step_forward_ex"
+    },
+    {
+        "genre": "セレスタル(EX)",
+        "title": "Oort",
+        "bpm_display": "196",
+        "bpm_min": 196,
+        "bpm_max": 196,
+        "time": "",
+        "notes": 1603,
+        "attributes": [
+            "辛ゲージ",
+            "階段（二重階段）",
+            "発狂",
+            "同時押し",
+            "片手処理"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%BB%E3%83%AC%E3%82%B9%E3%82%BF%E3%83%AB_ex"
+    },
+    {
+        "genre": "ハードサイスピードコア(EX)",
+        "title": "RUINA",
+        "bpm_display": "160",
+        "bpm_min": 160,
+        "bpm_max": 160,
+        "time": "",
+        "notes": 1473,
+        "attributes": [
+            "ロングポップ君"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%8F%E3%83%BC%E3%83%89%E3%82%B5%E3%82%A4%E3%82%B9%E3%83%94%E3%83%BC%E3%83%89%E3%82%B3%E3%82%A2_ex"
+    },
+    {
+        "genre": "モノノケプログレッシヴ(EX)",
+        "title": "魍魎乱舞",
+        "bpm_display": "132",
+        "bpm_min": 132,
+        "bpm_max": 132,
+        "time": "",
+        "notes": 1536,
+        "attributes": [
+            "乱打",
+            "階段",
+            "左右振り",
+            "体力",
+            "発狂",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%A2%E3%83%8E%E3%83%8E%E3%82%B1%E3%83%97%E3%83%AD%E3%82%B0%E3%83%AC%E3%83%83%E3%82%B7%E3%83%B4_ex"
+    },
+    {
+        "genre": "オイパンク(EX)",
+        "title": "悲しいね",
+        "bpm_display": "200",
+        "bpm_min": 200,
+        "bpm_max": 200,
+        "time": "1:34",
+        "notes": 820,
+        "attributes": [
+            "縦連打",
+            "交互連打",
+            "ラスト殺し",
+            "辛判定"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AA%E3%82%A4%E3%83%91%E3%83%B3%E3%82%AF_ex"
+    },
+    {
+        "genre": "クラシック8(EX)",
+        "title": "Line Times",
+        "bpm_display": "60～210",
+        "bpm_min": 60,
+        "bpm_max": 210,
+        "time": "1:43",
+        "notes": 941,
+        "attributes": [
+            "縦連打",
+            "発狂",
+            "階段",
+            "ソフラン",
+            "辛判定（辛GOOD判定）"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AF%E3%83%A9%E3%82%B7%E3%83%83%E3%82%AF8_ex"
+    },
+    {
+        "genre": "クラシック9(EX)",
+        "title": "Hell? or Heaven?",
+        "bpm_display": "25～680",
+        "bpm_min": 25,
+        "bpm_max": 680,
+        "time": "2:01",
+        "notes": 807,
+        "attributes": [
+            "ソフラン",
+            "階段",
+            "辛判定（辛GOOD判定）"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AF%E3%83%A9%E3%82%B7%E3%83%83%E3%82%AF9_ex"
+    },
+    {
+        "genre": "カウボーイ(EX)",
+        "title": "Blue River",
+        "bpm_display": "134",
+        "bpm_min": 134,
+        "bpm_max": 134,
+        "time": "1:59",
+        "notes": 1607,
+        "attributes": [
+            "辛ゲージ",
+            "体力",
+            "同時押し",
+            "乱打",
+            "左右振り",
+            "片手処理",
+            "辛判定"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AB%E3%82%A6%E3%83%9C%E3%83%BC%E3%82%A4_ex"
+    },
+    {
+        "genre": "クラシック11(EX)",
+        "title": "想い出をありがとう",
+        "bpm_display": "40～320",
+        "bpm_min": 40,
+        "bpm_max": 320,
+        "time": "2:00",
+        "notes": 955,
+        "attributes": [
+            "辛判定",
+            "ソフラン",
+            "縦連打",
+            "乱打",
+            "階段"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%AF%E3%83%A9%E3%82%B7%E3%83%83%E3%82%AF11_ex"
+    },
+    {
+        "genre": "スクリーン(EX)",
+        "title": "GALAXY FOREST 11.6&12",
+        "bpm_display": "379",
+        "bpm_min": 379,
+        "bpm_max": 379,
+        "time": "1:29",
+        "notes": 633,
+        "attributes": [
+            "階段",
+            "発狂",
+            "辛判定（辛GOOD型）"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3_ex"
+    },
+    {
+        "genre": "リナシタ(EX)",
+        "title": "uən",
+        "bpm_display": "200",
+        "bpm_min": 200,
+        "bpm_max": 200,
+        "time": "1:57",
+        "notes": 1500,
+        "attributes": [
+            "体力",
+            "左右振り",
+            "階段",
+            "縦連打",
+            "ラスト殺し"
+        ],
+        "url": "https://popn.wiki/%E9%9B%A3%E6%98%93%E5%BA%A6%E8%A1%A8/%E3%83%AA%E3%83%8A%E3%82%B7%E3%82%BF_ex"
+    }
+];
+
+        // 2. 属性リストをデータから自動抽出
+        function getUniqueAttributes() {
+            const attrs = new Set();
+            allSongs.forEach(s => s.attributes.forEach(a => attrs.add(a)));
+            // ソース [5, 13] にある括弧付きの属性なども含め、すべて抽出します
+            return Array.from(attrs).sort();
+        }
+
+        function initApp() {
+            const container = document.getElementById('attribute-filters');
+            const uniqueAttrs = getUniqueAttributes();
+
+            uniqueAttrs.forEach(attr => {
+                const label = document.createElement('label');
+                label.className = "flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 cursor-pointer";
+                label.innerHTML = `<input type="checkbox" value="${attr}" class="attr-checkbox"> <span>${attr}</span>`;
+                label.addEventListener('change', updateMatchCount);
+                container.appendChild(label);
+            });
+
+            document.getElementById('min-bpm').addEventListener('input', updateMatchCount);
+            document.getElementById('min-notes').addEventListener('input', updateMatchCount);
+            updateMatchCount();
+        }
+
+        function getFilteredSongs() {
+            const selectedAttrs = Array.from(document.querySelectorAll('.attr-checkbox:checked')).map(cb => cb.value);
+            const minBpm = parseInt(document.getElementById('min-bpm').value) || 0;
+            const maxBpm = parseInt(document.getElementById('max-bpm').value) || 999; // 指定なしなら十分大きな数
+            const minNotes = parseInt(document.getElementById('min-notes').value) || 0;
+
+            return allSongs.filter(song => {
+                // 属性チェック
+                const hasAttrs = selectedAttrs.every(attr => song.attributes.includes(attr));
+                
+                // 最低BPM条件: 曲の最小値が指定の下限以上か
+                const matchMinBpm = song.bpm_min >= minBpm;
+                
+                // 最高BPM条件: 曲の最大値が指定の上限以下か 【ここを追加】
+                const matchMaxBpm = song.bpm_max <= maxBpm;
+                
+                const matchNotes = song.notes >= minNotes;
+
+                return hasAttrs && matchMinBpm && matchMaxBpm && matchNotes;
+            });
+        }
+
+        function updateMatchCount() {
+            const count = getFilteredSongs().length;
+            document.getElementById('match-count').innerText = `該当曲数: ${count}曲 / 全${allSongs.length}曲`;
+            document.getElementById('draw-button').disabled = count === 0;
+        }
+
+        document.getElementById('draw-button').onclick = () => {
+            const filtered = getFilteredSongs();
+            const song = filtered[Math.floor(Math.random() * filtered.length)];
+            
+            document.getElementById('res-genre').innerText = song.genre;
+            document.getElementById('res-title').innerText = song.title;
+            document.getElementById('res-bpm').innerText = song.bpm_display;
+            document.getElementById('res-notes').innerText = song.notes;
+            document.getElementById('res-time').innerText = song.time || "不明";
+            document.getElementById('res-attributes').innerText = "属性: " + song.attributes.join(', ');
+            document.getElementById('res-link').href = song.url;
+            document.getElementById('result-area').classList.remove('hidden');
+        };
+
+        initApp();
+    </script>
+</body>
+</html>
