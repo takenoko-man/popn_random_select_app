@@ -41,6 +41,16 @@
             <!-- 属性フィルター（動的生成） -->
             <div>
                 <label class="block text-sm font-bold text-gray-700 mb-3">譜面属性（複数選択可）</label>
+                <div class="flex justify-center space-x-4 mb-3">
+                    <label class="flex items-center space-x-2 cursor-pointer text-black">
+                        <input type="radio" name="attr-mode" value="and" checked>
+                        <span>AND</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer text-black">
+                        <input type="radio" name="attr-mode" value="or">
+                        <span>OR</span>
+                    </label>
+                </div>
                 <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
             </div>
 
@@ -199,6 +209,11 @@
                 attrContainer.appendChild(label);
             });
 
+            // 属性モードのイベント登録
+            document.querySelectorAll('input[name="attr-mode"]').forEach(el => {
+                el.addEventListener('change', updateMatchCount);
+            });
+
             // その他の数値フィルターにイベント登録
             document.querySelectorAll('#min-bpm, #max-bpm, #min-notes').forEach(el => {
                 el.addEventListener('input', updateMatchCount);
@@ -217,7 +232,8 @@
 
             return allSongs.filter(song => {
                 const matchLv = selectedLv.includes(song.level);
-                const matchAttrs = selectedAttrs.every(attr => song.attributes.includes(attr));
+                const attrMode = document.querySelector('input[name="attr-mode"]:checked').value;
+                const matchAttrs = attrMode === 'and' ? selectedAttrs.every(attr => song.attributes.includes(attr)) : selectedAttrs.some(attr => song.attributes.includes(attr));
                 const matchBpm = song.bpm_min >= minBpm && song.bpm_max <= maxBpm;
                 const matchNotes = song.notes >= minNotes;
                 return matchLv && matchAttrs && matchBpm && matchNotes;
@@ -235,7 +251,11 @@
 
             let previewHTML = '';
             if (selectedLv) previewHTML += `<p>レベル: ${selectedLv}</p>`;
-            if (selectedAttrs) previewHTML += `<p>属性: ${selectedAttrs}</p>`;
+            if (selectedAttrs) {
+                const attrMode = document.querySelector('input[name="attr-mode"]:checked').value;
+                const modeText = attrMode === 'and' ? 'AND' : 'OR';
+                previewHTML += `<p>属性 (${modeText}): ${selectedAttrs}</p>`;
+            }
             previewHTML += `<p>BPM: ${minBpm} ~ ${maxBpm}</p>`;
             if (minNotes !== '-') previewHTML += `<p>最低Notes: ${minNotes}</p>`;
 
