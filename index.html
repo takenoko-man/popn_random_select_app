@@ -199,7 +199,7 @@
                     attrCount[attr] = (attrCount[attr] || 0) + 1;
                 });
             });
-            const attrs = Object.keys(attrCount).filter(attr => attrCount[attr] > 1).sort();
+            const attrs = Object.keys(attrCount).filter(attr => attrCount[attr] > 1).sort((a, b) => attrCount[b] - attrCount[a]);
             
             attrs.forEach(attr => {
                 const label = document.createElement('label');
