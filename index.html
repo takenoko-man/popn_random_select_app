@@ -7,9 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background: linear-gradient(180deg, #000011 0%, #000033 50%, #000011 100%);
+            background-image: url('background_filtered.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             position: relative;
-            overflow: hidden;
         }
         .star {
             position: absolute;
@@ -25,7 +27,7 @@
 </head>
 <body class="min-h-screen p-4 md:p-8 text-white relative">
     <div class="max-w-3xl mx-auto bg-gray-900 bg-opacity-90 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
-        <h1 class="text-3xl font-black text-center mb-8 text-blue-300">pop'n music 楽曲抽選くん</h1>
+        <h1 class="text-3xl font-black text-center mb-8 text-blue-300">pop'n music<br>楽曲抽選くん</h1>
 
         <div class="space-y-8 border-b pb-8 mb-8">
             <!-- レベルフィルター（動的生成に変更） -->
@@ -38,7 +40,7 @@
 
             <!-- 属性フィルター（動的生成） -->
             <div>
-                <label class="block text-sm font-bold text-gray-300 mb-3">重視する属性（複数選択可）</label>
+                <label class="block text-sm font-bold text-gray-300 mb-3">譜面属性（複数選択可）</label>
                 <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
             </div>
 
