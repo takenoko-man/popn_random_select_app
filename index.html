@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-image: url('background_filtered.png');
+            background-image: url('background_highcheer.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -26,7 +26,7 @@
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-white relative">
-    <div class="max-w-3xl mx-auto bg-gray-900 bg-opacity-90 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
+    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-70 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
         <h1 class="text-3xl font-black text-center mb-8 text-blue-300">pop'n music<br>楽曲抽選くん</h1>
 
         <div class="space-y-8 border-b pb-8 mb-8">
@@ -82,6 +82,29 @@
             <div id="filter-preview" class="text-xs text-gray-400 mt-3 space-y-2"></div>
         </div>
 
+        <div class="text-center mt-8">
+            <button id="toggle-list" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">楽曲一覧を表示</button>
+        </div>
+
+        <!-- 楽曲一覧エリア -->
+        <div id="song-list-area" class="mt-10 hidden">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">該当楽曲一覧</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto bg-white rounded shadow">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-2 text-left">Lv</th>
+                            <th class="px-4 py-2 text-left">ジャンル</th>
+                            <th class="px-4 py-2 text-left">BPM</th>
+                            <th class="px-4 py-2 text-left">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="song-list-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 抽選中ローディングエリア（リッチ版用） -->
         <div id="loading-area" class="mt-10 hidden">
             <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner text-center">
@@ -93,7 +116,7 @@
 
         <!-- 結果表示エリア -->
         <div id="result-area" class="mt-10 hidden">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
+            <div id="result-content" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
                 <div id="res-level" class="inline-block bg-gray-800 text-blue-300 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
                 <p id="res-genre" class="text-blue-100 text-sm font-bold mb-1"></p>
                 <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
@@ -212,11 +235,29 @@
             document.getElementById('filter-preview').innerHTML = previewHTML;
         }
 
+        function updateSongList() {
+            const songs = getFilteredSongs();
+            const tbody = document.getElementById('song-list-body');
+            tbody.innerHTML = '';
+            songs.forEach(song => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="border px-4 py-2">${song.level}</td>
+                    <td class="border px-4 py-2">${song.genre}</td>
+                    <td class="border px-4 py-2">${song.bpm_display}</td>
+                    <td class="border px-4 py-2">${song.notes}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function updateMatchCount() {
             const count = getFilteredSongs().length;
             document.getElementById('match-count').innerText = `該当曲数: ${count}曲 / 全${allSongs.length}曲`;
             document.getElementById('draw-button').disabled = count === 0;
             updateFilterPreview();
+            updateSongList();
         }
 
         document.getElementById('draw-button').onclick = () => {
@@ -237,6 +278,16 @@
             setTimeout(() => {
                 const song = filtered[Math.floor(Math.random() * filtered.length)];
                 
+                // レベルに応じた背景色設定
+                let bgClass = 'bg-gray-100';
+                if (song.level === 50) bgClass = 'bg-red-100';
+                else if (song.level === 49) bgClass = 'bg-orange-100';
+                else if (song.level === 48) bgClass = 'bg-yellow-100';
+                else if (song.level >= 46) bgClass = 'bg-green-100';
+                else if (song.level >= 44) bgClass = 'bg-cyan-100';
+                
+                document.getElementById('result-content').className = `${bgClass} rounded-2xl p-8 text-gray-800 shadow-inner`;
+                
                 document.getElementById('res-level').innerText = "Lv." + song.level;
                 document.getElementById('res-genre').innerText = song.genre;
                 document.getElementById('res-title').innerText = song.title;
@@ -255,10 +306,18 @@
                     document.getElementById('loading-area').classList.add('hidden');
                     button.style.display = '';
                 }
-            }, 300);
+            }, 1000);
         };
 
         loadSongs();
+
+        // 楽曲一覧トグル
+        document.getElementById('toggle-list').addEventListener('click', () => {
+            const area = document.getElementById('song-list-area');
+            area.classList.toggle('hidden');
+            const button = document.getElementById('toggle-list');
+            button.innerText = area.classList.contains('hidden') ? '楽曲一覧を表示' : '楽曲一覧を隠す';
+        });
     </script>
 </body>
 </html>
