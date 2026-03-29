@@ -3,149 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pop'n music Lv.49 楽曲抽選くん</title>
+    <title>pop'n music Lv.48-49 楽曲抽選くん</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-8">
-    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Lv.49 楽曲抽選</h1>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 text-slate-800">
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10">
+        <h1 class="text-3xl font-black text-center mb-8 text-blue-700">Lv.48-49 楽曲抽選</h1>
 
-        <div class="space-y-6 border-b pb-6 mb-6">
+        <div class="space-y-8 border-b pb-8 mb-8">
+            <!-- レベルフィルター -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">重視する属性（複数選択可）</label>
-                <!-- チェックボックスが動的に生成されます -->
-                <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
+                <label class="block text-sm font-bold text-slate-600 mb-3">対象レベル</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center space-x-2 cursor-pointer bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+                        <input type="checkbox" value="48" class="level-checkbox w-5 h-5" checked>
+                        <span class="font-bold">Lv.48</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+                        <input type="checkbox" value="49" class="level-checkbox w-5 h-5" checked>
+                        <span class="font-bold">Lv.49</span>
+                    </label>
+                </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <!-- 属性フィルター -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-3">重視する属性（複数選択可）</label>
+                <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm">
+                    <!-- JavaScriptで動的に生成 -->
+                </div>
+            </div>
+
+            <!-- 数値フィルター -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">最低BPM</label>
-                    <input type="number" id="min-bpm" class="w-full border rounded p-2" placeholder="下限">
+                    <label class="block text-sm font-bold text-slate-600 mb-1">最低BPM</label>
+                    <input type="number" id="min-bpm" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="下限">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">最高BPM</label>
-                    <input type="number" id="max-bpm" class="w-full border rounded p-2" placeholder="上限">
+                    <label class="block text-sm font-bold text-slate-600 mb-1">最高BPM</label>
+                    <input type="number" id="max-bpm" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="上限">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">最低Notes</label>
-                    <input type="number" id="min-notes" class="w-full border rounded p-2" placeholder="例: 1500">
+                    <label class="block text-sm font-bold text-slate-600 mb-1">最低Notes</label>
+                    <input type="number" id="min-notes" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="例: 1500">
                 </div>
             </div>
         </div>
 
         <div class="text-center">
-            <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition disabled:bg-gray-400">
-                この条件で曲を選ぶ！
+            <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg transform transition active:scale-95 disabled:bg-slate-300">
+                楽曲を抽選する！
             </button>
-            <p id="match-count" class="text-sm text-gray-500 mt-2">読み込み中...</p>
+            <p id="match-count" class="text-sm text-slate-500 mt-4 italic font-medium">読み込み中...</p>
         </div>
 
-        <div id="result-area" class="mt-8 hidden border-t pt-6">
-            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 text-center">
-                <p id="res-genre" class="text-sm text-blue-600 font-bold tracking-wider mb-1"></p>
-                <h2 id="res-title" class="text-2xl font-black text-gray-900 mb-4"></h2>
-                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4 text-left px-4">
-                    <p>BPM: <span id="res-bpm"></span></p>
-                    <p>Notes: <span id="res-notes"></span></p>
-                    <p>Time: <span id="res-time"></span></p>
-                    <p id="res-attributes" class="col-span-2 italic text-gray-500"></p>
+        <!-- 結果表示エリア -->
+        <div id="result-area" class="mt-10 hidden">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner relative overflow-hidden">
+                <div class="relative z-10">
+                    <div id="res-level" class="inline-block bg-white text-blue-700 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
+                    <p id="res-genre" class="text-blue-100 text-sm font-bold tracking-widest uppercase mb-1"></p>
+                    <h2 id="res-title" class="text-3xl font-black mb-6 leading-tight"></h2>
+                    <div class="grid grid-cols-2 gap-y-3 text-sm font-medium border-t border-blue-400 pt-6">
+                        <p>BPM: <span id="res-bpm" class="font-bold"></span></p>
+                        <p>Notes: <span id="res-notes" class="font-bold"></span></p>
+                        <p>演奏時間: <span id="res-time" class="font-bold"></span></p>
+                        <div class="col-span-2">
+                            <p class="text-blue-200 mb-1">属性タグ:</p>
+                            <p id="res-attributes" class="italic text-xs leading-relaxed"></p>
+                        </div>
+                    </div>
+                    <div class="mt-8 text-center">
+                        <a id="res-link" href="#" target="_blank" class="inline-block bg-white text-blue-700 font-bold py-2 px-6 rounded-lg hover:bg-blue-50 transition">
+                            popn.wiki で攻略を見る
+                        </a>
+                    </div>
                 </div>
-                <a id="res-link" href="#" target="_blank" class="text-blue-500 hover:underline font-medium">popn.wiki で詳細を見る</a>
             </div>
         </div>
     </div>
 
     <script>
         let allSongs = [];
-    
-        // 1. 外部JSONファイルの読み込み
+
         async function loadSongs() {
             try {
-                // 同一ディレクトリにある popn_data.json を取得
-                const response = await fetch('popn_data.json');
-                if (!response.ok) throw new Error('データの読み込みに失敗しました');
-                
+                const response = await fetch('master_data.json');
                 allSongs = await response.json();
-                
-                // データ読み込み完了後にUIを初期化
                 initApp();
             } catch (error) {
-                console.error(error);
-                document.getElementById('match-count').innerText = "データの読み込みエラーが発生しました。";
+                document.getElementById('match-count').innerText = "データの読み込みに失敗しました。";
             }
         }
-    
-        // 2. 属性リストをデータから自動抽出
-        function getUniqueAttributes() {
-            const attrs = new Set();
-            // ソースにある「体力」「発狂」「辛ゲージ」などの属性をすべて収集 [1, 2]
-            allSongs.forEach(s => s.attributes.forEach(a => attrs.add(a)));
-            return Array.from(attrs).sort();
-        }
-    
+
         function initApp() {
             const container = document.getElementById('attribute-filters');
-            const uniqueAttrs = getUniqueAttributes();
-    
-            uniqueAttrs.forEach(attr => {
+            const attrs = new Set();
+            allSongs.forEach(s => s.attributes.forEach(a => attrs.add(a)));
+            
+            Array.from(attrs).sort().forEach(attr => {
                 const label = document.createElement('label');
-                label.className = "flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded border hover:bg-gray-100 cursor-pointer";
+                label.className = "flex items-center space-x-1 bg-white px-2 py-1 rounded border border-slate-200 hover:border-blue-400 cursor-pointer transition";
                 label.innerHTML = `<input type="checkbox" value="${attr}" class="attr-checkbox"> <span>${attr}</span>`;
                 label.addEventListener('change', updateMatchCount);
                 container.appendChild(label);
             });
-    
-            // フィルター入力のイベント設定
-            document.getElementById('min-bpm').addEventListener('input', updateMatchCount);
-            document.getElementById('max-bpm').addEventListener('input', updateMatchCount);
-            document.getElementById('min-notes').addEventListener('input', updateMatchCount);
-            
+
+            // 全フィルターにイベント登録
+            document.querySelectorAll('.level-checkbox, #min-bpm, #max-bpm, #min-notes').forEach(el => {
+                el.addEventListener('change', updateMatchCount);
+                el.addEventListener('input', updateMatchCount);
+            });
+
             updateMatchCount();
         }
-    
-        // 3. フィルタリングロジック（BPM範囲対応版）
+
         function getFilteredSongs() {
+            const selectedLv = Array.from(document.querySelectorAll('.level-checkbox:checked')).map(cb => parseInt(cb.value));
             const selectedAttrs = Array.from(document.querySelectorAll('.attr-checkbox:checked')).map(cb => cb.value);
             const minBpm = parseInt(document.getElementById('min-bpm').value) || 0;
             const maxBpm = parseInt(document.getElementById('max-bpm').value) || 999;
             const minNotes = parseInt(document.getElementById('min-notes').value) || 0;
-    
+
             return allSongs.filter(song => {
-                // 属性の完全一致チェック
-                const hasAttrs = selectedAttrs.every(attr => song.attributes.includes(attr));
-                
-                // BPM条件：オイパンク0 [1] や クラシック9 [3] のようなソフラン曲も考慮
-                const matchMinBpm = song.bpm_min >= minBpm;
-                const matchMaxBpm = song.bpm_max <= maxBpm;
-                
+                const matchLv = selectedLv.includes(song.level);
+                const matchAttrs = selectedAttrs.every(attr => song.attributes.includes(attr));
+                const matchBpm = song.bpm_min >= minBpm && song.bpm_max <= maxBpm;
                 const matchNotes = song.notes >= minNotes;
-    
-                return hasAttrs && matchMinBpm && matchMaxBpm && matchNotes;
+                return matchLv && matchAttrs && matchBpm && matchNotes;
             });
         }
-    
+
         function updateMatchCount() {
             const count = getFilteredSongs().length;
             document.getElementById('match-count').innerText = `該当曲数: ${count}曲 / 全${allSongs.length}曲`;
             document.getElementById('draw-button').disabled = count === 0;
         }
-    
-        // 4. 抽選ボタンの動作
+
         document.getElementById('draw-button').onclick = () => {
             const filtered = getFilteredSongs();
             const song = filtered[Math.floor(Math.random() * filtered.length)];
             
+            document.getElementById('res-level').innerText = "Lv." + song.level;
             document.getElementById('res-genre').innerText = song.genre;
             document.getElementById('res-title').innerText = song.title;
             document.getElementById('res-bpm').innerText = song.bpm_display;
             document.getElementById('res-notes').innerText = song.notes;
             document.getElementById('res-time').innerText = song.time || "不明";
-            document.getElementById('res-attributes').innerText = "属性: " + song.attributes.join(', ');
+            document.getElementById('res-attributes').innerText = song.attributes.join(' / ');
             document.getElementById('res-link').href = song.url;
+            
             document.getElementById('result-area').classList.remove('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         };
-    
-        // アプリ起動
+
         loadSongs();
     </script>
 </body>
