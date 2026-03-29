@@ -26,13 +26,13 @@
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-white relative">
-    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-70 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
-        <h1 class="text-3xl font-black text-center mb-8 text-blue-300">pop'n music<br>楽曲抽選くん</h1>
+    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-90 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm">
+        <h1 class="text-3xl font-black text-center mb-8 text-gray-900">pop'n music<br>楽曲抽選くん</h1>
 
         <div class="space-y-8 border-b pb-8 mb-8">
             <!-- レベルフィルター（動的生成に変更） -->
             <div>
-                <label class="block text-sm font-bold text-gray-300 mb-3">対象レベル</label>
+                <label class="block text-sm font-bold text-gray-700 mb-3">対象レベル</label>
                 <div id="level-filters" class="flex flex-wrap gap-4">
                     <!-- JavaScriptで自動生成されます -->
                 </div>
@@ -40,22 +40,22 @@
 
             <!-- 属性フィルター（動的生成） -->
             <div>
-                <label class="block text-sm font-bold text-gray-300 mb-3">譜面属性（複数選択可）</label>
+                <label class="block text-sm font-bold text-gray-700 mb-3">重視する属性（複数選択可）</label>
                 <div id="attribute-filters" class="flex flex-wrap gap-2 text-sm"></div>
             </div>
 
             <!-- 数値フィルター -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-300 mb-1">最低BPM</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">最低BPM</label>
                     <input type="number" id="min-bpm" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="下限">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-300 mb-1">最高BPM</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">最高BPM</label>
                     <input type="number" id="max-bpm" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="上限">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-300 mb-1">最低Notes</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">最低Notes</label>
                     <input type="number" id="min-notes" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none" placeholder="例: 1500">
                 </div>
             </div>
@@ -63,7 +63,7 @@
 
         <div class="text-center">
             <div class="mb-4">
-                <label class="block text-sm font-bold text-gray-300 mb-2">抽選アニメーション</label>
+                <label class="block text-sm font-bold text-gray-700 mb-2">抽選アニメーション</label>
                 <div class="flex justify-center space-x-4">
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input type="radio" name="animation-type" value="simple" checked>
@@ -78,8 +78,8 @@
             <button id="draw-button" class="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform text-white text-xl font-black py-4 px-12 rounded-full shadow-lg transition disabled:bg-slate-300">
                 楽曲を抽選する！
             </button>
-            <p id="match-count" class="text-sm text-gray-300 mt-4 italic font-medium">読み込み中...</p>
-            <div id="filter-preview" class="text-xs text-gray-400 mt-3 space-y-2"></div>
+            <p id="match-count" class="text-sm text-gray-700 mt-4 italic font-medium">読み込み中...</p>
+            <div id="filter-preview" class="text-xs text-gray-600 mt-3 space-y-2"></div>
         </div>
 
         <div class="text-center mt-8">
@@ -90,16 +90,16 @@
         <div id="song-list-area" class="mt-10 hidden">
             <h3 class="text-xl font-bold mb-4 text-gray-800">該当楽曲一覧</h3>
             <div class="overflow-x-auto">
-                <table class="w-full table-auto bg-white rounded shadow">
-                    <thead>
-                        <tr class="bg-gray-200">
-                            <th class="px-4 py-2 text-left">Lv</th>
+                <table class="w-full table-auto bg-white rounded shadow border-collapse">
+                    <thead class="bg-gradient-to-r from-pink-400 to-purple-400 text-white">
+                        <tr>
+                            <th class="px-4 py-2 text-left rounded-tl">Lv</th>
                             <th class="px-4 py-2 text-left">ジャンル</th>
                             <th class="px-4 py-2 text-left">BPM</th>
-                            <th class="px-4 py-2 text-left">Notes</th>
+                            <th class="px-4 py-2 text-left rounded-tr">Notes</th>
                         </tr>
                     </thead>
-                    <tbody id="song-list-body">
+                    <tbody id="song-list-body" class="text-gray-800">
                     </tbody>
                 </table>
             </div>
@@ -117,7 +117,7 @@
         <!-- 結果表示エリア -->
         <div id="result-area" class="mt-10 hidden">
             <div id="result-content" class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-inner">
-                <div id="res-level" class="inline-block bg-gray-800 text-blue-300 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
+                <div id="res-level" class="inline-block bg-white text-blue-800 font-black px-3 py-1 rounded-md mb-4 text-sm"></div>
                 <p id="res-genre" class="text-blue-100 text-sm font-bold mb-1"></p>
                 <h2 id="res-title" class="text-3xl font-black mb-6"></h2>
                 <div class="grid grid-cols-2 gap-y-3 text-sm border-t border-blue-400 pt-6">
@@ -129,7 +129,7 @@
                     </div>
                 </div>
                 <div class="mt-8 text-center">
-                    <a id="res-link" href="#" target="_blank" class="bg-gray-800 text-blue-300 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
+                    <a id="res-link" href="#" target="_blank" class="bg-white text-blue-800 font-bold py-2 px-6 rounded-lg">攻略を見る</a>
                 </div>
             </div>
         </div>
@@ -170,7 +170,7 @@
 
             uniqueLevels.forEach(lv => {
                 const label = document.createElement('label');
-                label.className = "flex items-center space-x-2 cursor-pointer bg-gray-800 px-4 py-2 rounded-lg border border-gray-600";
+                label.className = "flex items-center space-x-2 cursor-pointer bg-gray-100 px-4 py-2 rounded-lg border border-gray-300 text-gray-800";
                 label.innerHTML = `
                     <input type="checkbox" value="${lv}" class="level-checkbox w-5 h-5" checked>
                     <span class="font-bold">Lv.${lv}</span>
@@ -186,7 +186,7 @@
             
             Array.from(attrs).sort().forEach(attr => {
                 const label = document.createElement('label');
-                label.className = "flex items-center space-x-1 bg-gray-700 px-2 py-1 rounded border border-gray-500 hover:border-blue-400 cursor-pointer transition";
+                label.className = "flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded border border-gray-300 hover:border-blue-400 cursor-pointer transition text-gray-800";
                 label.innerHTML = `<input type="checkbox" value="${attr}" class="attr-checkbox"> <span>${attr}</span>`;
                 label.addEventListener('change', updateMatchCount);
                 attrContainer.appendChild(label);
@@ -239,14 +239,14 @@
             const songs = getFilteredSongs();
             const tbody = document.getElementById('song-list-body');
             tbody.innerHTML = '';
-            songs.forEach(song => {
+            songs.forEach((song, index) => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50';
+                tr.className = index % 2 === 0 ? 'bg-pink-50 hover:bg-pink-100' : 'bg-blue-50 hover:bg-blue-100';
                 tr.innerHTML = `
-                    <td class="border px-4 py-2">${song.level}</td>
-                    <td class="border px-4 py-2">${song.genre}</td>
-                    <td class="border px-4 py-2">${song.bpm_display}</td>
-                    <td class="border px-4 py-2">${song.notes}</td>
+                    <td class="border-b border-gray-200 px-4 py-2">${song.level}</td>
+                    <td class="border-b border-gray-200 px-4 py-2">${song.genre}</td>
+                    <td class="border-b border-gray-200 px-4 py-2">${song.bpm_display}</td>
+                    <td class="border-b border-gray-200 px-4 py-2">${song.notes}</td>
                 `;
                 tbody.appendChild(tr);
             });
