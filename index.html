@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-image: url('background_highcheer.png');
+            background-image: url('img/background_highcheer.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -26,8 +26,8 @@
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-white relative">
-    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-50 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm" style="background-image: url('background_filtered.png'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-        <img class="block mx-auto mb-8" src="logo2.png" alt="pop'n music 楽曲抽選くん">
+    <div class="max-w-3xl mx-auto bg-gray-200 bg-opacity-50 rounded-2xl shadow-xl p-6 md:p-10 backdrop-blur-sm" style="background-image: url('img/background_filtered.png'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+        <img class="block mx-auto mb-8" src="img/logo2.png" alt="pop'n music 楽曲抽選くん">
 
         <div class="space-y-8 border-b pb-8 mb-8">
             <!-- レベルフィルター（動的生成に変更） -->
@@ -166,7 +166,7 @@
 
         async function loadSongs() {
             try {
-                const response = await fetch('master_data.json');
+                const response = await fetch('data/master_data.json');
                 allSongs = await response.json();
                 initApp();
                 createStars();
